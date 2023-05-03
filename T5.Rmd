@@ -1,10 +1,24 @@
+---
+title: "T5"
+author: "Jorge Maté Martínez"
+date: "2023-05-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### T5 Deployment
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r preprocesado}
 
 # Load the dataset
 data <-read.csv("day.csv")
-
-
-
-# Preprocessing...
 
 columns = c("cnt")
 bikes = data.frame(matrix(nrow=731, ncol=length(columns)))
@@ -35,15 +49,17 @@ bikes$windspeed <- data$windspeed * 67
 bikes$days_since_2011 <- as.numeric(difftime(as.Date(data$dteday), as.Date("2011-01-01"), units = "days"))
 
 
+```
 
-
-# EXERCISE 1: One Dimensional Partial Dependance Plot ###################################################
-
+```{r randomForestModel}
 library(randomForest)
 
 set.seed(123) # for reproducibility
 rf_model <- randomForest(cnt ~ workingday + holiday + season_1 + season_2 + season_3 + MISTY + RAIN + temp + hum + windspeed + days_since_2011, data = bikes)
+```
 
+
+```{r one_dim_pdp}
 library(pdp)
 library(ggplot2)
 
@@ -70,21 +86,46 @@ windspeed_pdp <- partial(rf_model, pred.var = "windspeed", plot = TRUE, plot.eng
   ylab("Predicted Bike Counts")
 
 
+```
+
+## Include Plots
+
+You can also embed plots, for example:
+
+```{r plots_1, echo=TRUE}
 
 library(gridExtra)
+
 
 # Combine the four plots into a single plot grid
 grid.arrange(days_since_2011_pdp, temp_pdp, hum_pdp, windspeed_pdp, nrow = 2, ncol = 2)
 
 
 
-# EXERCISE 2: Bidimensional Partial Dependance Plot ###################################################
+```
+
+Days since 2011 shows that the predicted bike rentals have been steadily increasing since 2011, with a few fluctuations. This suggests that there is a positive relationship between days_since_2011 and the predicted bike rentals.
+
+
+Temperature shows an inverted U-shaped relationship between temp and the predicted bike rentals, with higher rentals at moderate temperatures (around 20-25 degrees Celsius). This suggests that the relationship between temp and the predicted bike rentals is not linear, but rather has a more complex shape.
+
+The Humidity PDP shows a slightly negative relationship between hum and the predicted bike rentals, with lower rentals at higher humidity levels. This suggests that high humidity may be a deterrent for people to rent bikes.
+
+The Win Speed PDP graph shows a roughly linear negative relationship between windspeed and the predicted bike rentals, with lower rentals at higher wind speeds. This suggests that high winds may make it less desirable to rent bikes.
+
+In summary, the PDPs suggest that days_since_2011 has a positive influence on the predicted bike rentals, while temp has a U-shaped influence, hum has a slightly negative influence, and windspeed has a roughly linear negative influence. However, it's important to note that PDPs only show the marginal influence of a single variable on the outcome, while holding all other variables constant at their average values. The true relationships between the variables and bike rentals may be more complex and may involve interactions between variables.
+
+
+
+
+
+```{r two_dim_pdp}
 
 # Same random seed, also for reproducibility reasons...
 set.seed(123)
 
-# Sample 250 rows at random
-sample_index <- sample(nrow(bikes), 250, replace = FALSE)
+# Sample 400 rows at random
+sample_index <- sample(nrow(bikes), 400, replace = FALSE)
 bike_samples <- bikes[sample_index, ]
 
 # Train the random forest model...
@@ -99,22 +140,33 @@ ggplot(pdp_data, aes(x = temp, y=hum, fill = yhat)) +
   ggtitle('Bidimensional partial dependency') +
   scale_fill_gradient (low = 'yellow', high = 'red', name = 'Predicted Bike counts')
 
+```
+This bidimensional partial dependency graph displays how combined humidity and temperature affect the amount of rented bikes. 
+
+When temperature is between 17 and 22 (aprox.) and humidity is between 45 and 70 (aprox.) the highest results are produced.
+
+Very low temperature and humidity produce te contrary effect: The reduction of the predicted bike counts.
+
+Temperature itself above 12 (aprox) is also an indicator of good rented bikes results, as humidity behaves as better increaser of the bike counts if it has not got extreme values (under 25 or above 85 aprox.)
 
 
-
-# EXERCISE 3: PDP to explain the price of a house.
+```{r house_pdp}
 
 # Load the dataset
 data_houses <-read.csv("kc_house_data.csv")
 
 rf_modelH <- randomForest(price ~ bedrooms + bathrooms + sqft_living + sqft_lot + floors + yr_built, data = data_houses)
 
+```
+
+
+```{r plots_h}
 
 # Same random seed, also for reproducibility reasons...
 set.seed(123)
 
-# Sample 500 rows at random
-sample_index <- sample(nrow(data_houses), 500, replace = FALSE)
+# Sample 1000 rows at random
+sample_index <- sample(nrow(data_houses), 1000, replace = FALSE)
 house_samples <- data_houses[sample_index, ]
 
 rf_modelH2 <- randomForest(price ~ bedrooms + bathrooms + sqft_living + sqft_lot + floors + yr_built, data = house_samples)
@@ -145,5 +197,19 @@ floors_pdp <- partial(rf_modelH2, pred.var = "floors", plot = TRUE, plot.engine 
 
 # Combine the four plots into a single plot grid
 grid.arrange(bedrooms_pdp, bathrooms_pdp, sqft_living_pdp, floors_pdp, nrow = 2, ncol = 2)
+
+
+
+```
+
+There is a positive relationship between the house bedrooms number and the predicted price, this is very clear for houses up to 3 bedrooms or between 4 and 6. As a curious thing, it looks like between 3 and 4 bedrooms and with more than 6, these extra rooms are not appreciated by the buyer as a fact to pay more money for those houses. 
+
+About the bathrooms number, there is also a logical positive relationship between the number of bathrooms and the predicted price. The house price increases specially for 5 or six bathrooms.
+
+The square feet of the house has also a positive relationship with the house price and increases constantly with it. Above 7000 sqr. feet it is specially noticeable.
+
+The floors number also affect positively to the house price up to 3 floors. It seems that houses with more floors (that should be very uncommon) are not increasing the final sales price.
+
+
 
 
