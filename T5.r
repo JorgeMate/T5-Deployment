@@ -78,4 +78,26 @@ grid.arrange(days_since_2011_pdp, temp_pdp, hum_pdp, windspeed_pdp, nrow = 2, nc
 
 
 
+# EXERCISE 2: Bidimensional Partial Dependance Plot ###################################################
+
+# Same random seed, also for reproducibility reasons...
+set.seed(123)
+
+# Sample 250 rows at random
+sample_index <- sample(nrow(bikes), 250, replace = FALSE)
+bike_samples <- bikes[sample_index, ]
+
+# Train the random forest model...
+rf_model2 <- randomForest(cnt ~ temp + hum, data = bike_samples)
+
+pdp_data = partial(rf_model2, pred.var = c('temp', 'hum'))
+summary(pdp_data)
+head(pdp_data)
+
+ggplot(pdp_data, aes(x = temp, y=hum, fill = yhat)) +
+  geom_tile() +
+  ggtitle('Bidimensional partial dependency') +
+  scale_fill_gradient (low = 'yellow', high = 'red', name = 'Predicted Bike counts')
+
+
 
