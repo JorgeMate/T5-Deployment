@@ -6,7 +6,7 @@ Deployment: Model-agnostic methods
 Apply PDP to the regression example of predicting bike rentals. Fit a random forest approximation for the prediction of bike rentals (cnt). Use the partial dependence plot to visualize the relationships the model learned. Use the slides shown in class as model.  
 
 ### QUESTION:
-Analyse the influence of days since 2011, temperature, humidity and wind speed on the predicted bike counts.
+**Analyse the influence of days since 2011, temperature, humidity and wind speed on the predicted bike counts.**
 
 Days since 2011 shows that the predicted bike rentals have been steadily increasing since 2011, with a few fluctuations. This suggests that there is a positive relationship between days_since_2011 and the predicted bike rentals.
 
